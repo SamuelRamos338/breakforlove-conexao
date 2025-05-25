@@ -1,0 +1,57 @@
+name: myapp
+description: "A new Flutter project."
+# Impede publicação acidental no pub.dev
+publish_to: 'none'
+
+# Versão do app: major.minor.patch+build
+version: 1.0.0+1
+
+environment:
+  # Versão mínima do SDK do Dart necessária
+  sdk: ^3.7.0-209.1.beta
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Biblioteca para calendário customizado
+  table_calendar: ^3.0.8
+  # Ícones estilo iOS
+  cupertino_icons: ^1.0.8
+  # Barra de navegação customizada
+  google_nav_bar: ^5.0.7
+  # Internacionalização e formatação de datas
+  intl: ^0.18.0
+  # Gerenciamento de estado reativo (necessário para temas dinâmicos)
+  provider: ^6.0.0
+
+  http: 1.4.0
+
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.13.1
+flutter_lints: ^5.0.0
+flutter_launcher_icons:
+    android: true
+    ios: true
+    image_path: "assets/iconApp.png"
+  # Lints recomendados para boas práticas
+
+
+flutter:
+  # Garante que os ícones do Material estejam disponíveis
+  uses-material-design: true
+
+  # Adiciona todos os arquivos da pasta assets/
+  assets:
+    - assets/
+  # Para adicionar fontes customizadas, use a seção abaixo (exemplo comentado)
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
+  #       - asset: fonts/Schyler-Regular.ttf
+  #       - asset: fonts/Schyler-Italic.ttf
+  #         style: italic
