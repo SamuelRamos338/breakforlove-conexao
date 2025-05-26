@@ -46,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     setState(() => _isLoading = true);
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.0.104:3000/api/usuarioRoute/login'),
+        Uri.parse('http://192.168.0.104:3000/api/usuario/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'usuario': _userController.text,
@@ -57,9 +57,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['msg'] == 'Login realizado com sucesso') {
+          final conexaoId = data['usuario']['conexao'] ?? ''; // Tratar null
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const MainPage()),
+            MaterialPageRoute(
+              builder: (context) => MainPage(conexaoId: conexaoId),
+            ),
           );
         } else {
           _showError(data['msg']);

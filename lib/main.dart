@@ -57,7 +57,9 @@ class MyApp extends StatelessWidget {
 }
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+  final String conexaoId;
+
+  const MainPage({super.key, required this.conexaoId});
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -67,12 +69,18 @@ class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
   final PageController _pageController = PageController();
 
-  final List<Widget> _pages = const [
-    HomeScreen(),
-    NotificationScreen(),
-    CalendarScreen(),
-    ProfileScreen(),
-  ];
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      HomeScreen(conexaoId: widget.conexaoId.isNotEmpty ? widget.conexaoId : ''), // Garante que não será null
+      const NotificationScreen(),
+      const CalendarScreen(),
+      const ProfileScreen(),
+    ];
+  }
 
   void _onTabChange(int index) {
     _pageController.jumpToPage(index);
@@ -85,7 +93,6 @@ class _MainPageState extends State<MainPage> {
         padding: const EdgeInsets.only(top: 40),
         child: PageView(
           controller: _pageController,
-          // Removido physics para permitir swipe lateral
           children: _pages,
           onPageChanged: (index) {
             setState(() => _selectedIndex = index);

@@ -27,11 +27,11 @@ const UsuarioController = {
         tema: 0,
         fotoPerfil: 0
       });
-      
+
       await designPadrao.save();
       //#endregion
 
-      res.status(201).json({ msg: 'Usuário cadastrado com sucesso' });
+      res.status(201).json({ msg: 'Usuário cadastrado com sucesso', usuario: { id: novoUsuario._id, nome: novoUsuario.nome, usuario: novoUsuario.usuario } });
     } catch (error) {
       console.error('Erro no cadastro:', error);
       res.status(500).json({ msg: 'Erro interno no servidor' });
@@ -39,7 +39,7 @@ const UsuarioController = {
   },
   //#endregion
 
-  //#region Login de usuário
+  // #region Login de usuário
   async login(req, res) {
     const { usuario, senha } = req.body;
 
@@ -60,7 +60,12 @@ const UsuarioController = {
 
       res.status(200).json({
         msg: 'Login realizado com sucesso',
-        usuario: { id: user._id, nome: user.nome, usuario: user.usuario, conexao: user.conexao }
+        usuario: {
+          id: user._id,
+          nome: user.nome,
+          usuario: user.usuario,
+          conexao: user.conexao || null // Garante que conexao seja null se não existir
+        }
       });
     } catch (error) {
       console.error('Erro no login:', error);
@@ -69,10 +74,14 @@ const UsuarioController = {
   },
   //#endregion
 
-  //#region Alterar dados do usuário
+  // #region Alterar dados do usuário
   async atualizar(req, res) {
     const { id } = req.params; // id do usuário a ser alterado
     const { usuario, nome, senha } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ msg: 'ID do usuário é obrigatório' });
+    }
 
     try {
       const user = await Usuario.findById(id);
