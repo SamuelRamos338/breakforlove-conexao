@@ -65,17 +65,7 @@ class ProfileScreen extends StatelessWidget {
             },
           ),
           // Card de logout
-          _ProfileScreenItem(
-            texto: 'Sair',
-            descricao: 'Desconectar da sua conta.',
-            icone: Icons.logout,
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
-            },
-          ),
+
           const SizedBox(height: 30),
           const Spacer(),
           const Text(

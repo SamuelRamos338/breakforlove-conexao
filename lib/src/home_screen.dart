@@ -1,11 +1,8 @@
-// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api
-
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-// Classe que representa um item do checklist
 class CheckListItem {
   final String id;
   final String descricao;
@@ -20,194 +17,109 @@ class CheckListItem {
       marcado: json['marcado'] ?? false,
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {'id': id, 'descricao': descricao, 'marcado': marcado};
-  }
 }
 
-const String baseUrl = 'http://192.168.0.104:3000/api/checkList';
+class CheckListScreen extends StatefulWidget {
+  final String conexaoId;
 
-// Função para listar os itens do checklist
-Future<List<CheckListItem>> listarCheckList(String conexaoId) async {
-  try {
-    final response = await http.get(Uri.parse('$baseUrl/listar/$conexaoId'));
+  const CheckListScreen({required this.conexaoId});
+
+  @override
+  _CheckListScreenState createState() => _CheckListScreenState();
+}
+
+class _CheckListScreenState extends State<CheckListScreen> {
+  Future<List<CheckListItem>> fetchCheckList() async {
+    final response = await http.get(
+      Uri.parse('http://192.168.0.104:3000/api/checkList/listar/${widget.conexaoId}'),
+    );
+
     if (response.statusCode == 200) {
-      final List dados = jsonDecode(response.body);
-      return dados.map((json) => CheckListItem.fromJson(json)).toList();
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => CheckListItem.fromJson(json)).toList();
     } else {
-      print('Erro ao listar checklist: ${response.statusCode} - ${response.body}');
-      throw Exception('Erro ao buscar checklist');
+      throw Exception('Erro ao carregar checklist');
     }
-  } catch (e) {
-    print('Exceção ao listar checklist: $e');
-    rethrow;
   }
-}
 
-// Função para criar um novo item no checklist
-Future<void> criarItem(String descricao, String conexaoId) async {
-  try {
+  Future<void> addCheckListItem(String descricao) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/criar/$conexaoId'),
+      Uri.parse('http://192.168.0.104:3000/api/checkList/criar/${widget.conexaoId}'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'descricao': descricao}),
     );
-    if (response.statusCode != 201) {
-      print('Erro ao criar item: ${response.statusCode} - ${response.body}');
-      throw Exception('Erro ao criar item');
-    }
-  } catch (e) {
-    print('Exceção ao criar item: $e');
-    rethrow;
-  }
-}
 
-// Função para atualizar um item do checklist
-Future<void> atualizarItem(CheckListItem item, String conexaoId) async {
-  try {
+    if (response.statusCode == 200) {
+      setState(() {});
+    } else {
+      throw Exception('Erro ao adicionar item');
+    }
+  }
+
+  Future<void> updateCheckListItem(CheckListItem item) async {
     final response = await http.put(
-      Uri.parse('$baseUrl/atualizar/$conexaoId'),
+      Uri.parse('http://192.168.0.104:3000/api/checkList/atualizar/${widget.conexaoId}'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode([item.toJson()]),
+      body: jsonEncode([
+        {'id': item.id, 'descricao': item.descricao, 'marcado': item.marcado}
+      ]),
     );
-    if (response.statusCode != 200) {
-      print('Erro ao atualizar item: ${response.statusCode} - ${response.body}');
+
+    if (response.statusCode == 200) {
+      setState(() {});
+    } else {
       throw Exception('Erro ao atualizar item');
     }
-  } catch (e) {
-    print('Exceção ao atualizar item: $e');
-    rethrow;
   }
-}
 
-// Função para deletar um item do checklist
-Future<void> deletarItem(String conexaoId, String idItem) async {
-  try {
+  Future<void> deleteCheckListItem(String id) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/deletar/$conexaoId?id=$idItem'),
-      headers: {'Content-Type': 'application/json'},
+      Uri.parse('http://192.168.0.104:3000/api/checkList/deletar/${widget.conexaoId}?id=$id'),
     );
-    if (response.statusCode != 200) {
-      print('Erro ao deletar item: ${response.statusCode} - ${response.body}');
-      throw Exception('Erro ao deletar');
-    }
-  } catch (e) {
-    print('Exceção ao deletar item: $e');
-    rethrow;
-  }
-}
 
-// Tela principal da Home
-class HomeScreen extends StatefulWidget {
-  final String conexaoId;
-
-  const HomeScreen({required this.conexaoId});
-
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  List<CheckListItem> checklist = [];
-
-  @override
-  void initState() {
-    super.initState();
-    carregarChecklist();
-  }
-
-  Future<void> carregarChecklist() async {
-    try {
-      final dados = await listarCheckList(widget.conexaoId);
-      setState(() => checklist = dados);
-    } catch (e) {
-      print('Erro ao carregar checklist: $e');
+    if (response.statusCode == 200) {
+      setState(() {});
+    } else {
+      throw Exception('Erro ao deletar item');
     }
   }
 
-  Future<void> adicionarItem() async {
-    String? descricao = await _showEditDialog(context, 'Novo item', '');
-    if (descricao != null && descricao.trim().isNotEmpty) {
-      try {
-        await criarItem(descricao.trim(), widget.conexaoId);
-        await carregarChecklist();
-      } catch (e) {
-        print('Erro ao adicionar item: $e');
-      }
-    }
-  }
+  void showAddItemDialog() {
+    final TextEditingController controller = TextEditingController();
 
-  Future<void> editarItem(int index) async {
-    String? novaDesc = await _showEditDialog(context, 'Renomear item', checklist[index].descricao);
-    if (novaDesc != null && novaDesc.trim().isNotEmpty) {
-      final atualizado = CheckListItem(
-        id: checklist[index].id,
-        descricao: novaDesc.trim(),
-        marcado: checklist[index].marcado,
-      );
-      try {
-        await atualizarItem(atualizado, widget.conexaoId);
-        await carregarChecklist();
-      } catch (e) {
-        print('Erro ao editar item: $e');
-      }
-    }
-  }
-
-  Future<void> marcarItem(int index, bool marcado) async {
-    final atualizado = CheckListItem(
-      id: checklist[index].id,
-      descricao: checklist[index].descricao,
-      marcado: marcado,
-    );
-    try {
-      await atualizarItem(atualizado, widget.conexaoId);
-      await carregarChecklist();
-    } catch (e) {
-      print('Erro ao marcar item: $e');
-    }
-  }
-
-  Future<void> removerItem(int index) async {
-    try {
-      await deletarItem(widget.conexaoId, checklist[index].id);
-      await carregarChecklist();
-    } catch (e) {
-      print('Erro ao remover item: $e');
-    }
-  }
-
-  Future<String?> _showEditDialog(BuildContext context, String title, String initial) {
-    final controller = TextEditingController(text: initial);
-    return showDialog<String>(
+    showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(title),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(hintText: 'Digite seu lembrete'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Adicionar Item'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(hintText: 'Descrição do item'),
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Salvar'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (controller.text.isNotEmpty) {
+                  await addCheckListItem(controller.text);
+                  Navigator.of(context).pop();
+                }
+              },
+              child: const Text('Adicionar'),
+            ),
+          ],
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final String dia = DateFormat('d', 'pt_BR').format(now);
-    final String mes = DateFormat('MMMM', 'pt_BR').format(now);
     final iconColor = Theme.of(context).iconTheme.color ?? Colors.pink;
 
     return Scaffold(
@@ -218,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: Column(
               children: [
+                // Avatar e ícone de favoritos
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -231,6 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 60),
                 Divider(color: Theme.of(context).dividerColor, thickness: 4),
                 const SizedBox(height: 28),
+                // Cartão com data e lembretes
                 Container(
                   width: double.infinity,
                   margin: const EdgeInsets.only(bottom: 18),
@@ -245,10 +159,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text(dia, style: const TextStyle(color: Colors.white, fontSize: 64, fontWeight: FontWeight.bold)),
+                            Text(
+                              DateFormat('d', 'pt_BR').format(DateTime.now()),
+                              style: const TextStyle(color: Colors.white, fontSize: 64, fontWeight: FontWeight.bold),
+                            ),
                             const SizedBox(height: 4),
                             Text(
-                              mes[0].toUpperCase() + mes.substring(1),
+                              DateFormat('MMMM', 'pt_BR').format(DateTime.now()).toUpperCase(),
                               style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w600),
                             ),
                           ],
@@ -267,6 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
+                // Lista de lembretes
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(18),
@@ -288,38 +206,64 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Text('Lembretes', style: TextStyle(color: iconColor, fontSize: 18, fontWeight: FontWeight.bold)),
                           const Spacer(),
-                          IconButton(icon: Icon(Icons.add, color: iconColor), onPressed: adicionarItem),
+                          IconButton(icon: Icon(Icons.add, color: iconColor), onPressed: showAddItemDialog),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      ...List.generate(checklist.length, (i) => Row(
-                        children: [
-                          Checkbox(
-                            value: checklist[i].marcado,
-                            onChanged: (val) => marcarItem(i, val ?? false),
-                            activeColor: iconColor,
-                          ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => editarItem(i),
-                              child: Text(
-                                checklist[i].descricao,
-                                style: TextStyle(fontSize: 17, color: iconColor),
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.edit, size: 18, color: iconColor),
-                            onPressed: () => editarItem(i),
-                            tooltip: 'Renomear',
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete, size: 18, color: Colors.grey),
-                            onPressed: () => removerItem(i),
-                            tooltip: 'Excluir',
-                          ),
-                        ],
-                      )),
+                      FutureBuilder<List<CheckListItem>>(
+                        future: fetchCheckList(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Center(child: Text('Erro ao carregar checklist: ${snapshot.error}'));
+                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return const Center(child: Text('Nenhum item encontrado'));
+                          } else {
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: snapshot.data!.length,
+                              itemBuilder: (context, index) {
+                                final item = snapshot.data![index];
+                                return Row(
+                                  children: [
+                                    Checkbox(
+                                      value: item.marcado,
+                                      onChanged: (val) async {
+                                        await updateCheckListItem(
+                                          CheckListItem(
+                                            id: item.id,
+                                            descricao: item.descricao,
+                                            marcado: val ?? false,
+                                          ),
+                                        );
+                                      },
+                                      activeColor: iconColor,
+                                    ),
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () => {}, // Lógica para editar
+                                        child: Text(
+                                          item.descricao,
+                                          style: TextStyle(fontSize: 17, color: iconColor),
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.delete, size: 18, color: Colors.grey),
+                                      onPressed: () async {
+                                        await deleteCheckListItem(item.id);
+                                      },
+                                      tooltip: 'Excluir',
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),

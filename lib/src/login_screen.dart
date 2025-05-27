@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../main.dart';
+import 'conexao_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -57,11 +58,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['msg'] == 'Login realizado com sucesso') {
-          final conexaoId = data['usuario']['conexao'] ?? ''; // Tratar null
+          final usuarioId = data['usuario']['id'];
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => MainPage(conexaoId: conexaoId),
+              builder: (context) => ConexaoScreen(usuarioId: usuarioId),
             ),
           );
         } else {
@@ -250,6 +251,20 @@ class _LoginScreenForm extends StatelessWidget {
                       fontSize: 12,
                       color: Colors.blueAccent,
                     ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ConexaoScreen(usuarioId: 'ID_DO_USUARIO'),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Acessar Conexões',
+                    style: TextStyle(fontSize: 12, color: Colors.blueAccent),
                   ),
                 ),
               ],

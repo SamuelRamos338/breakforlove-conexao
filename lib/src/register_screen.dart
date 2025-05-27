@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'conexao_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -11,6 +12,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProviderStateMixin {
   final _userController = TextEditingController();
+  final _nameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _visible = false;
@@ -49,20 +51,29 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     setState(() => _isLoading = true);
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.0.104:3000/api/usuario/cadastrar'), // URL corrigida
+        Uri.parse('http://192.168.0.104:3000/api/usuario/cadastrar'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'usuario': _userController.text,
+          'nome': _nameController.text,
           'senha': _passwordController.text,
-          'nome': 'Nome do Usuário', // Substitua pelo nome real, se necessário
         }),
       );
 
       if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Usuário cadastrado com sucesso!')),
+        final data = jsonDecode(response.body);
+        final usuarioId = data['usuario']['id'];
+
+        // Criar conexão após o cadastro
+        await _criarConexao(usuarioId);
+
+        // Redirecionar para a tela de conexões
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ConexaoScreen(usuarioId: usuarioId),
+          ),
         );
-        Navigator.pop(context);
       } else {
         final data = jsonDecode(response.body);
         _showError(data['msg'] ?? 'Erro ao cadastrar usuário.');
@@ -71,6 +82,25 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       _showError('Erro ao conectar ao servidor. Tente novamente.');
     } finally {
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _criarConexao(String usuarioId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://192.168.0.104:3000/api/conexao/criar'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'usuario1': usuarioId,
+          'usuario2': usuarioId, // Exemplo: ajustar conforme a lógica de conexão
+        }),
+      );
+
+      if (response.statusCode != 201) {
+        throw Exception('Erro ao criar conexão.');
+      }
+    } catch (e) {
+      _showError('Erro ao criar conexão.');
     }
   }
 
@@ -144,6 +174,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                       curve: Curves.easeOutCubic,
                       child: _RegisterScreenForm(
                         userController: _userController,
+                        nameController: _nameController,
                         passwordController: _passwordController,
                         confirmPasswordController: _confirmPasswordController,
                         onRegisterTap: _register,
@@ -164,8 +195,9 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   }
 }
 
-class _RegisterScreenForm extends StatefulWidget {
+class _RegisterScreenForm extends StatelessWidget {
   final TextEditingController userController;
+  final TextEditingController nameController;
   final TextEditingController passwordController;
   final TextEditingController confirmPasswordController;
   final VoidCallback onRegisterTap;
@@ -174,6 +206,7 @@ class _RegisterScreenForm extends StatefulWidget {
 
   const _RegisterScreenForm({
     required this.userController,
+    required this.nameController,
     required this.passwordController,
     required this.confirmPasswordController,
     required this.onRegisterTap,
@@ -182,16 +215,10 @@ class _RegisterScreenForm extends StatefulWidget {
   });
 
   @override
-  State<_RegisterScreenForm> createState() => _RegisterScreenFormState();
-}
-
-class _RegisterScreenFormState extends State<_RegisterScreenForm> {
-  bool _showPassword = false;
-
-  @override
   Widget build(BuildContext context) {
-    final iconColor = Theme.of(context).iconTheme.color;
     final primaryColor = Theme.of(context).colorScheme.primary;
+    final iconColor = Theme.of(context).iconTheme.color;
+
     return Card(
       color: Colors.white,
       elevation: 8,
@@ -202,9 +229,9 @@ class _RegisterScreenFormState extends State<_RegisterScreenForm> {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: widget.userController,
+              controller: userController,
               decoration: InputDecoration(
-                labelText: 'Criar usuário',
+                labelText: 'Usuário',
                 prefixIcon: Icon(Icons.person, color: iconColor),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -213,29 +240,31 @@ class _RegisterScreenFormState extends State<_RegisterScreenForm> {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: widget.passwordController,
-              obscureText: !_showPassword,
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: 'Nome',
+                prefixIcon: Icon(Icons.person_outline, color: iconColor),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
               decoration: InputDecoration(
                 labelText: 'Senha',
                 prefixIcon: Icon(Icons.lock, color: iconColor),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _showPassword ? Icons.visibility : Icons.visibility_off,
-                    color: iconColor,
-                  ),
-                  onPressed: () {
-                    setState(() => _showPassword = !_showPassword);
-                  },
-                ),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: widget.confirmPasswordController,
-              obscureText: !_showPassword,
+              controller: confirmPasswordController,
+              obscureText: true,
               decoration: InputDecoration(
                 labelText: 'Confirmar Senha',
                 prefixIcon: Icon(Icons.lock_outline, color: iconColor),
@@ -255,8 +284,8 @@ class _RegisterScreenFormState extends State<_RegisterScreenForm> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    onPressed: widget.isLoading ? null : widget.onRegisterTap,
-                    child: widget.isLoading
+                    onPressed: isLoading ? null : onRegisterTap,
+                    child: isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
                       'Cadastrar',
@@ -267,13 +296,27 @@ class _RegisterScreenFormState extends State<_RegisterScreenForm> {
               ],
             ),
             TextButton(
-              onPressed: widget.onLoginTap,
+              onPressed: onLoginTap,
               child: const Text(
                 'Já tem uma conta? Voltar ao login',
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.blueAccent,
                 ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ConexaoScreen(usuarioId: 'ID_DO_USUARIO'),
+                  ),
+                );
+              },
+              child: const Text(
+                'Acessar Conexões',
+                style: TextStyle(fontSize: 12, color: Colors.blueAccent),
               ),
             ),
           ],

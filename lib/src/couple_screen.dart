@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 class CoupleScreen extends StatefulWidget {
   const CoupleScreen({super.key});
@@ -10,99 +8,169 @@ class CoupleScreen extends StatefulWidget {
 }
 
 class _CoupleScreenState extends State<CoupleScreen> {
-  final List<Map<String, dynamic>> _items = [];
-  final String _baseUrl = 'http://192.168.0.104:3000/api/couple';
+  final Map<String, String> _infos = {
+    'Música favorita': 'Perfect - Ed Sheeran',
+    'Filme favorito': 'A Culpa é das Estrelas',
+    'Data especial': 'Primeiro encontro: 01/01/2023',
+    'Próximo aniversário de namoro': '14/03/2024',
+  };
 
-  Future<void> _fetchItems(String conexaoId) async {
-    try {
-      final response = await http.get(Uri.parse('$_baseUrl/$conexaoId'));
-      if (response.statusCode == 200) {
-        setState(() {
-          _items.clear();
-          _items.addAll(List<Map<String, dynamic>>.from(jsonDecode(response.body)));
-        });
-      }
-    } catch (e) {
-      _showError('Erro ao buscar itens.');
+  final Map<String, IconData> _icons = {
+    'Música favorita': Icons.music_note,
+    'Filme favorito': Icons.movie,
+    'Data especial': Icons.calendar_today,
+    'Próximo aniversário de namoro': Icons.cake,
+  };
+
+  bool _isEditing = false;
+  String? _editingKey;
+  final Map<String, TextEditingController> _controllers = {};
+
+  @override
+  void initState() {
+    super.initState();
+    for (var key in _infos.keys) {
+      _controllers[key] = TextEditingController(text: _infos[key]);
     }
   }
 
-  Future<void> _addItem(String descricao, String conexaoId) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'descricao': descricao, 'conexaoId': conexaoId}),
-      );
-      if (response.statusCode == 201) {
-        _fetchItems(conexaoId);
-      }
-    } catch (e) {
-      _showError('Erro ao adicionar item.');
+  @override
+  void dispose() {
+    for (var controller in _controllers.values) {
+      controller.dispose();
     }
+    super.dispose();
   }
 
-  Future<void> _updateItem(String id, String descricao) async {
-    try {
-      final response = await http.put(
-        Uri.parse('$_baseUrl/$id'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'descricao': descricao}),
-      );
-      if (response.statusCode == 200) {
-        _fetchItems(_items.first['conexaoId']);
-      }
-    } catch (e) {
-      _showError('Erro ao atualizar item.');
-    }
+  void _toggleEditMode() {
+    setState(() {
+      _isEditing = !_isEditing;
+      _editingKey = null;
+    });
   }
 
-  Future<void> _deleteItem(String id) async {
-    try {
-      final response = await http.delete(Uri.parse('$_baseUrl/$id'));
-      if (response.statusCode == 200) {
-        setState(() {
-          _items.removeWhere((item) => item['id'] == id);
-        });
-      }
-    } catch (e) {
-      _showError('Erro ao deletar item.');
-    }
+  void _startEdit(String key) {
+    setState(() {
+      _editingKey = key;
+      _controllers[key]?.text = '';
+    });
   }
 
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  void _saveEdit(String key) {
+    setState(() {
+      _infos[key] = _controllers[key]?.text ?? '';
+      _editingKey = null;
+    });
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _editingKey = null;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final iconColor = Theme.of(context).iconTheme.color;
     return Scaffold(
-      appBar: AppBar(title: const Text('Couple Screen')),
-      body: ListView.builder(
-        itemCount: _items.length,
-        itemBuilder: (context, index) {
-          final item = _items[index];
-          return ListTile(
-            title: Text(item['descricao']),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
+      appBar: AppBar(
+        title: const Text('Sobre o Casal'),
+        actions: [
+          IconButton(
+            icon: Icon(_isEditing ? Icons.close : Icons.edit),
+            tooltip: _isEditing ? 'Cancelar edição' : 'Editar',
+            onPressed: _toggleEditMode,
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () => _updateItem(item['id'], 'Nova descrição'),
+                const CircleAvatar(
+                  radius: 48,
+                  backgroundImage: AssetImage('assets/profile1.jpg'),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => _deleteItem(item['id']),
+                const SizedBox(width: 16),
+                Column(
+                  children: [
+                    const SizedBox(height: 58),
+                    Icon(Icons.favorite, color: iconColor, size: 32),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                const CircleAvatar(
+                  radius: 48,
+                  backgroundImage: AssetImage('assets/profile2.jpg'),
                 ),
               ],
             ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _addItem('Novo item', 'conexaoId'),
-        child: const Icon(Icons.add),
+            const SizedBox(height: 24),
+            const Text(
+              'Bolsonaro, Lula & Samuel',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Juntos desde: 14/02/2024',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 34),
+            ..._infos.keys.map((key) => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Card(
+                child: ListTile(
+                  leading: Icon(_icons[key], color: iconColor),
+                  title: Text(key),
+                  subtitle: _editingKey == key
+                      ? Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _controllers[key],
+                          autofocus: true,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(vertical: 8),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.check, color: Colors.green),
+                        tooltip: 'Salvar',
+                        onPressed: () => _saveEdit(key),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.red),
+                        tooltip: 'Cancelar',
+                        onPressed: _cancelEdit,
+                      ),
+                    ],
+                  )
+                      : GestureDetector(
+                    onTap: _isEditing
+                        ? () => _startEdit(key)
+                        : null,
+                    child: Row(
+                      children: [
+                        Expanded(child: Text(_infos[key]!)),
+                        if (_isEditing)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 8),
+                            child: Icon(Icons.edit, size: 18, color: Colors.grey),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            )),
+          ],
+        ),
       ),
     );
   }

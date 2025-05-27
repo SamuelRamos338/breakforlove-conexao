@@ -6,7 +6,7 @@ import 'package:myapp/src/home_screen.dart';
 import 'package:myapp/src/notification_screen.dart';
 import 'package:myapp/src/calendar_screen.dart';
 import 'package:myapp/src/profile_screen.dart';
-import 'package:myapp/src/login_screen.dart';
+import 'package:myapp/src/login_screen.dart'; // Certifique-se de que este caminho está correto
 import 'components/bottom_nav_bar.dart';
 
 void main() async {
@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: theme.themeData,
-          home: const LoginScreen(),
+          home: const LoginScreen(), // Certifique-se de que LoginScreen está definido
         );
       },
     );
@@ -75,7 +75,7 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     _pages = [
-      HomeScreen(conexaoId: widget.conexaoId.isNotEmpty ? widget.conexaoId : ''), // Garante que não será null
+      CheckListScreen(conexaoId: widget.conexaoId), // Substituído por CheckListScreen
       const NotificationScreen(),
       const CalendarScreen(),
       const ProfileScreen(),
