@@ -66,6 +66,23 @@ const UsuarioController = {
       console.error('Erro no login:', error);
       res.status(500).json({ msg: 'Erro interno no servidor' });
     }
+  },
+  
+  async buscarIdPorUsuario(req, res) {
+    const { usuario } = req.params;
+    
+    try {
+      const user = await Usuario.findOne({ usuario });
+      
+      if (!user) {
+        return res.status(404).json({ msg: 'Usuário não encontrado.' });
+      }
+      
+      res.status(200).json({ id: user._id });
+    } catch (err) {
+      console.error('Erro ao buscar usuário:', err);
+      res.status(500).json({ msg: 'Erro ao buscar ID do usuário.' });
+    }
   }
 };
 

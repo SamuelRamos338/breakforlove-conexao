@@ -8,6 +8,8 @@ router.post('/cadastrar', UsuarioController.cadastrar);
 // Login de usuário
 router.post('/login', UsuarioController.login);
 
+router.get('/buscar-id/:usuario', UsuarioController.buscarIdPorUsuario);
+
 // Atualizar usuário
 router.put('/atualizar/:id', (req, res) => {
   if (typeof UsuarioController.atualizar === 'function') {
