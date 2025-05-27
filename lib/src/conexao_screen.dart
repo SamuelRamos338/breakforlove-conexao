@@ -101,7 +101,7 @@ class _ConexaoScreenState extends State<ConexaoScreen> {
     final primary = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFE8B9B2),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
@@ -110,7 +110,8 @@ class _ConexaoScreenState extends State<ConexaoScreen> {
             children: [
               Image.asset(
                 'assets/logoApp.png',
-                height: 150,
+                width: 280,
+                height: 200,
               ),
               const SizedBox(height: 30),
               Container(
