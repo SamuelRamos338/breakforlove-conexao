@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../components/usuario_model.dart';
 import '../main.dart';
-import 'conexao_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -50,8 +50,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         Uri.parse('http://192.168.0.104:3000/api/usuario/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'usuario': _userController.text.trim(),
-          'senha': _passwordController.text.trim(),
+          'usuario': _userController.text,
+          'senha': _passwordController.text,
         }),
       );
 
@@ -59,24 +59,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         final data = jsonDecode(response.body);
         if (data['msg'] == 'Login realizado com sucesso') {
           final usuarioLogado = UsuarioModel.fromJson(data['usuario']);
-          if (usuarioLogado.conexao == null) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ConexaoScreen(
-                  usuarioLogado: usuarioLogado,
-                  apiBaseUrl: 'http://192.168.0.104:3000/api',
-                ),
-              ),
-            );
-          } else {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MainPage(conexaoId: usuarioLogado.conexao!),
-              ),
-            );
-          }
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MainPage(usuarioLogado: usuarioLogado),
+            ),
+          );
         } else {
           _showError(data['msg']);
         }

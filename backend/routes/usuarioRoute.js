@@ -2,14 +2,14 @@ const express = require('express');
 const router = express.Router();
 const UsuarioController = require('../controllers/UsuarioController');
 
-//Cadastro Usuario
+// Cadastro de usuário
 router.post('/cadastrar', UsuarioController.cadastrar);
 
-//Login Usuario
+// Login de usuário
 router.post('/login', UsuarioController.login);
 
-// Atualizar usuário
-router.put('/atualizar/:id', UsuarioController.atualizar);
+// Buscar ID por nome de usuário
+router.get('/buscar-id/:usuario', UsuarioController.buscarIdPorUsuario);
 
 // Atualizar usuário
 router.put('/atualizar/:id', (req, res) => {

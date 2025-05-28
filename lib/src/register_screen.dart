@@ -11,6 +11,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProviderStateMixin {
   final _userController = TextEditingController();
+  final _nameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _visible = false;
@@ -49,12 +50,12 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     setState(() => _isLoading = true);
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.0.104:3000/api/usuarioRoute/cadastrar'),
+        Uri.parse('http://192.168.0.104:3000/api/usuario/cadastrar'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'usuario': _userController.text,
+          'nome': _nameController.text,
           'senha': _passwordController.text,
-          'nome': 'Nome do Usuário',
         }),
       );
 
@@ -144,6 +145,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                       curve: Curves.easeOutCubic,
                       child: _RegisterScreenForm(
                         userController: _userController,
+                        nameController: _nameController,
                         passwordController: _passwordController,
                         confirmPasswordController: _confirmPasswordController,
                         onRegisterTap: _register,
@@ -166,6 +168,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
 
 class _RegisterScreenForm extends StatefulWidget {
   final TextEditingController userController;
+  final TextEditingController nameController;
   final TextEditingController passwordController;
   final TextEditingController confirmPasswordController;
   final VoidCallback onRegisterTap;
@@ -174,6 +177,7 @@ class _RegisterScreenForm extends StatefulWidget {
 
   const _RegisterScreenForm({
     required this.userController,
+    required this.nameController,
     required this.passwordController,
     required this.confirmPasswordController,
     required this.onRegisterTap,
@@ -204,8 +208,19 @@ class _RegisterScreenFormState extends State<_RegisterScreenForm> {
             TextField(
               controller: widget.userController,
               decoration: InputDecoration(
-                labelText: 'Criar usuário',
+                labelText: 'Usuário',
                 prefixIcon: Icon(Icons.person, color: iconColor),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: widget.nameController,
+              decoration: InputDecoration(
+                labelText: 'Nome',
+                prefixIcon: Icon(Icons.person_outline, color: iconColor),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
