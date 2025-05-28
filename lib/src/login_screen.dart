@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import '../main.dart';
 import 'conexao_screen.dart';
 import 'register_screen.dart';
 
@@ -44,6 +43,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 
   Future<void> _login() async {
+    if (_userController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showError('Usuário e senha são obrigatórios.');
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       final response = await http.post(
@@ -58,11 +62,19 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['msg'] == 'Login realizado com sucesso') {
-          final usuarioId = data['usuario']['id'];
+          final usuario = UsuarioModel(
+            id: data['usuario']['id'],
+            usuario: data['usuario']['usuario'],
+            nome: data['usuario']['nome'],
+            conexao: data['usuario']['conexao'],
+          );
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => ConexaoScreen(usuarioId: usuarioId),
+              builder: (context) => ConexaoScreen(
+                usuarioLogado: usuario,
+                apiBaseUrl: 'http://192.168.0.104:3000/api',
+              ),
             ),
           );
         } else {
@@ -92,7 +104,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
     return Scaffold(
       body: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -129,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    'Bem-vindo!',
+                    'Bem-vindo de volta',
                     style: TextStyle(
                       fontSize: 23,
                       fontWeight: FontWeight.bold,
@@ -153,7 +166,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         onRegisterTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterScreen(),
+                            ),
                           );
                         },
                       ),
@@ -188,90 +203,73 @@ class _LoginScreenForm extends StatelessWidget {
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final iconColor = Theme.of(context).iconTheme.color;
-    return Column(
-      children: [
-        Card(
-          color: Colors.white,
-          elevation: 8,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+
+    return Card(
+      color: Colors.white,
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: userController,
+              decoration: InputDecoration(
+                labelText: 'Usuário',
+                prefixIcon: Icon(Icons.person, color: iconColor),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Senha',
+                prefixIcon: Icon(Icons.lock, color: iconColor),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
               children: [
-                TextField(
-                  controller: userController,
-                  decoration: InputDecoration(
-                    labelText: 'Usuário',
-                    prefixIcon: Icon(Icons.person, color: iconColor),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'Senha',
-                    prefixIcon: Icon(Icons.lock, color: iconColor),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        onPressed: isLoading ? null : onLoginTap,
-                        child: isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text(
-                          'Entrar',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                  ],
-                ),
-                TextButton(
-                  onPressed: onRegisterTap,
-                  child: const Text(
-                    'Não tem conta? Cadastre-se',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.blueAccent,
+                    onPressed: isLoading ? null : onLoginTap,
+                    child: isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                      'Entrar',
+                      style: TextStyle(color: Colors.white),
                     ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ConexaoScreen(usuarioId: 'ID_DO_USUARIO'),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    'Acessar Conexões',
-                    style: TextStyle(fontSize: 12, color: Colors.blueAccent),
                   ),
                 ),
               ],
             ),
-          ),
+            TextButton(
+              onPressed: onRegisterTap,
+              child: const Text(
+                'Não tem uma conta? Cadastre-se',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.blueAccent,
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

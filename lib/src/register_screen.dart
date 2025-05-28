@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'conexao_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -43,6 +42,11 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   }
 
   Future<void> _register() async {
+    if (_userController.text.isEmpty || _nameController.text.isEmpty || _passwordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
+      _showError('Todos os campos são obrigatórios.');
+      return;
+    }
+
     if (_passwordController.text != _confirmPasswordController.text) {
       _showError('As senhas não coincidem.');
       return;
@@ -62,18 +66,10 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
 
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        final usuarioId = data['usuario']['id'];
-
-        // Criar conexão após o cadastro
-        await _criarConexao(usuarioId);
-
-        // Redirecionar para a tela de conexões
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ConexaoScreen(usuarioId: usuarioId),
-          ),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cadastro realizado com sucesso!')),
         );
+        Navigator.pop(context); // Retorna para a tela de login
       } else {
         final data = jsonDecode(response.body);
         _showError(data['msg'] ?? 'Erro ao cadastrar usuário.');
@@ -82,25 +78,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       _showError('Erro ao conectar ao servidor. Tente novamente.');
     } finally {
       setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _criarConexao(String usuarioId) async {
-    try {
-      final response = await http.post(
-        Uri.parse('http://192.168.0.104:3000/api/conexao/criar'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'usuario1': usuarioId,
-          'usuario2': usuarioId, // Exemplo: ajustar conforme a lógica de conexão
-        }),
-      );
-
-      if (response.statusCode != 201) {
-        throw Exception('Erro ao criar conexão.');
-      }
-    } catch (e) {
-      _showError('Erro ao criar conexão.');
     }
   }
 
@@ -303,20 +280,6 @@ class _RegisterScreenForm extends StatelessWidget {
                   fontSize: 12,
                   color: Colors.blueAccent,
                 ),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ConexaoScreen(usuarioId: 'ID_DO_USUARIO'),
-                  ),
-                );
-              },
-              child: const Text(
-                'Acessar Conexões',
-                style: TextStyle(fontSize: 12, color: Colors.blueAccent),
               ),
             ),
           ],
