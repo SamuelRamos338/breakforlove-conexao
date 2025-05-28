@@ -54,6 +54,16 @@
 ---
 <br>
 
+## - Buscar ID do Usuário  
+**Endpoint:** `GET /buscar-id/:usuario`  
+**Parâmetro:** `usuario`: nome do usuário a ser buscado  
+**Retornos:**  
+- `200` - Retorna o ID do usuário  
+- `404` - Usuário não encontrado  
+- `500` - Erro interno no servidor  
+---
+<br>
+
 # CONEXAO CONTROLLER
 
 ## -  Criar nova conexão
@@ -66,11 +76,11 @@
 }
 ```
 **Retornos:**
-- 201: Conexão criada com sucesso.
-- 400: Usuários iguais ou campos ausentes.
-- 404: Usuário não encontrado.
-- 409: Conexão ativa já existe.
-- 500: Erro no servidor.
+- `201` - Conexão criada com sucesso.
+- `400` - Usuários iguais ou campos ausentes.
+- `404` - Usuário não encontrado.
+- `409` - Conexão ativa já existe.
+- `500` - Erro no servidor.
 
 ---
 
@@ -78,10 +88,10 @@
 **Endpoint:** `PUT /api/conexao/aceitar/:id`  
 **Parâmetro:** `id:` id da conexão a ser aceita  
 **Retornos:**
-- 200: Conexão aceita com sucesso.
-- 404: Conexão não encontrada.
-- 409: Um dos usuários já está em uma conexão ativa.
-- 500: Erro no servidor.
+- `200` - Conexão aceita com sucesso.
+- `404` - Conexão não encontrada.
+- `409` - Um dos usuários já está em uma conexão ativa.
+- `500` - Erro no servidor.
 
 ---
 
@@ -89,9 +99,9 @@
 **Endpoint:** `PUT /api/conexao/rejeitar/:id`  
 **Parâmetro:** `id` da conexão a ser rejeitada  
 **Retornos:**
-- 200: Conexão rejeitada com sucesso.
-- 404: Conexão não encontrada.
-- 500: Erro no servidor.
+- `200` - Conexão rejeitada com sucesso.
+- `404` - Conexão não encontrada.
+- `500` - Erro no servidor.
 
 ---
 
@@ -99,8 +109,8 @@
 **Endpoint:** `GET /api/conexao/pendentes/:usuarioId`  
 **Parâmetro:** `usuarioId:` id do usuário que deseja buscar a conexão pendente
 **Retornos:**
-- 200: Lista de conexões pendentes.
-- 500: Erro ao buscar conexões.
+- `200` - Lista de conexões pendentes.
+- `500` - Erro ao buscar conexões.
 
 ---
 
@@ -108,9 +118,9 @@
 **Endpoint:** `GET /api/conexao/usuario/:usuarioId`  
 **Parâmetro:** `usuarioId:` id do usuário que deseja buscar a conexão  
 **Retornos:**
-- 200: Conexão encontrada.
-- 404: Nenhuma conexão encontrada.
-- 500: Erro no servidor.
+- `200` - Conexão encontrada.
+- `404` - Nenhuma conexão encontrada.
+- `500` - Erro no servidor.
 
 ---
 
@@ -118,9 +128,9 @@
 **Endpoint:** `DELETE /api/conexao/excluir/:conexaoId`  
 **Parâmetro:** `conexaoId:` id da conexão que deseja desfazer
 **Retornos:**
-- 200: Conexão desfeita com sucesso.
-- 404: Conexão não encontrada.
-- 500: Erro ao desfazer conexão.
+- `200` - Conexão desfeita com sucesso.
+- `404` - Conexão não encontrada.
+- `500` - Erro ao desfazer conexão.
 
 ---
 <br>
@@ -137,9 +147,9 @@
 }
 ```
 **Retornos:**
-- `201`: Item de checklist criado com sucesso.
-- `400`: Descrição é obrigatória.
-- `500`: Erro interno no servidor.
+- `201` - Item de checklist criado com sucesso.
+- `400` - Descrição é obrigatória.
+- `500` - Erro interno no servidor.
 
 ---
 
@@ -147,8 +157,8 @@
 **Rota:** `GET /listar/:conexaoId`  
 **Parâmetro:** `conexaoId:` id da conexão que deseja listar os itens
 **Retornos:**
-- `200`: Lista de itens de checklist.
-- `500`: Erro interno no servidor.
+- `200` - Lista de itens de checklist.
+- `500` - Erro interno no servidor.
 
 ---
 
@@ -166,9 +176,9 @@
 ]
 ```
 **Retornos:**
-- `200`: Itens atualizados com sucesso.
-- `400`: Lista inválida ou item incompleto.
-- `500`: Erro interno no servidor.
+- `200` - Itens atualizados com sucesso.
+- `400` - Lista inválida ou item incompleto.
+- `500` - Erro interno no servidor.
 
 ---
 
@@ -178,9 +188,9 @@
 -`conexaoId:` id da conexão ligada ao item
 -`ITEM_ID:` id do item que deseja deletar
 **Retornos:**
-- `200`: Item deletado com sucesso.
-- `404`: Item não encontrado.
-- `500`: Erro interno no servidor.
+- `200` - Item deletado com sucesso.
+- `404` - Item não encontrado.
+- `500` - Erro interno no servidor.
 
 ---
 <br>
@@ -198,9 +208,9 @@
 }
 ```
 **Retornos:**
-- `201`: Lembrete criado com sucesso.
-- `400`: Descrição é obrigatória.
-- `500`: Erro interno no servidor.
+- `201` - Lembrete criado com sucesso.
+- `400` - Descrição é obrigatória.
+- `500` - Erro interno no servidor.
 
 ---
 
@@ -209,8 +219,8 @@
 **Parâmetros:**  
 -`conexaoId:` id da conexão que deseja listar os lembretes  
 **Retornos:**
-- `200`: Lista de lembretes.
-- `500`: Erro interno no servidor.
+- `200` - Lista de lembretes.
+- `500` - Erro interno no servidor.
 
 ---
 
@@ -227,10 +237,10 @@
 }
 ```
 **Retornos:**
-- `200`: Lembrete atualizado com sucesso.
-- `400`: Descrição é obrigatória.
-- `404`: Lembrete não encontrado ou não autorizado.
-- `500`: Erro interno no servidor.
+- `200` - Lembrete atualizado com sucesso.
+- `400` - Descrição é obrigatória.
+- `404` - Lembrete não encontrado ou não autorizado.
+- `500` - Erro interno no servidor.
 
 ---
 
@@ -240,9 +250,9 @@
 -`conexaoId:` id da conexão ligada ao lembrete  
 -`LEMBRETE_ID:` id do lembrete que deseja deletar (via query string)  
 **Retornos:**
-- `200`: Lembrete deletado com sucesso.
-- `404`: Lembrete não encontrado ou não autorizado.
-- `500`: Erro interno no servidor.
+- `200` - Lembrete deletado com sucesso.
+- `404` - Lembrete não encontrado ou não autorizado.
+- `500` - Erro interno no servidor.
 
 ---
 <br>
@@ -253,9 +263,9 @@
 **Rota:** `GET /design/:usuarioId`  
 **Parâmetro:** `usuarioId:` id do usuário que deseja obter o design  
 **Retornos:**
-- `200`: Retorna o design do usuário.
-- `404`: Design não encontrado.
-- `500`: Erro interno no servidor.
+- `200` - Retorna o design do usuário.
+- `404` - Design não encontrado.
+- `500` - Erro interno no servidor.
 
 ---
 
@@ -269,10 +279,10 @@
 }
 ```
 **Retornos:**
-- `200`: Tema atualizado com sucesso.
-- `400`: Tema é obrigatório.
-- `404`: Design não encontrado.
-- `500`: Erro interno no servidor.
+- `200` - Tema atualizado com sucesso.
+- `400` - Tema é obrigatório.
+- `404` - Design não encontrado.
+- `500` - Erro interno no servidor.
 
 ---
 
@@ -286,7 +296,7 @@
 }
 ```
 **Retornos:**
-- `200`: Foto de perfil atualizada com sucesso.
-- `400`: Foto de perfil é obrigatória.
-- `404`: Design não encontrado.
-- `500`: Erro interno no servidor.
+- `200` - Foto de perfil atualizada com sucesso.
+- `400` - Foto de perfil é obrigatória.
+- `404` - Design não encontrado.
+- `500` - Erro interno no servidor.
