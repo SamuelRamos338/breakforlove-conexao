@@ -42,7 +42,7 @@ import 'dart:convert';
       const ConexaoScreen({
         Key? key,
         required this.usuarioLogado,
-        required this.apiBaseUrl,
+        required this.apiBaseUrl, required usuarioId,
       }) : super(key: key);
 
       @override
