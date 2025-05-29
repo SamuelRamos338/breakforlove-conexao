@@ -33,7 +33,7 @@ class AboutAppScreen extends StatelessWidget {
             ),
             SizedBox(height: 24),
             Text(
-              'Desenvolvido por Samuel Ramos.',
+              'Desenvolvido por uma equipe.',
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],

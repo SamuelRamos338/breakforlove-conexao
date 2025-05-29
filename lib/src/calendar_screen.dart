@@ -4,7 +4,9 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
 
 class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({super.key});
+  final String conexaoId;
+
+  const CalendarScreen({super.key, required this.conexaoId});
 
   @override
   State<CalendarScreen> createState() => _CalendarScreenState();
@@ -25,7 +27,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _fetchReminders() async {
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/listar/conexaoId'), // Substitua "conexaoId" pelo ID real
+        Uri.parse('$_baseUrl/listar/${widget.conexaoId}'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -52,12 +54,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
     try {
       final response = id == null
           ? await http.post(
-        Uri.parse('$_baseUrl/criar/conexaoId'), // Substitua "conexaoId" pelo ID real
+        Uri.parse('$_baseUrl/criar/${widget.conexaoId}'),
         headers: {'Content-Type': 'application/json'},
         body: body,
       )
           : await http.put(
-        Uri.parse('$_baseUrl/atualizar/conexaoId?id=$id'), // Substitua "conexaoId" pelo ID real
+        Uri.parse('$_baseUrl/atualizar/${widget.conexaoId}?id=$id'),
         headers: {'Content-Type': 'application/json'},
         body: body,
       );
@@ -76,7 +78,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _deleteReminder(String id) async {
     try {
       final response = await http.delete(
-        Uri.parse('$_baseUrl/deletar/conexaoId?id=$id'), // Substitua "conexaoId" pelo ID real
+        Uri.parse('$_baseUrl/deletar/${widget.conexaoId}?id=$id'),
         headers: {'Content-Type': 'application/json'},
       );
 

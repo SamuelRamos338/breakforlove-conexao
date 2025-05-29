@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:myapp/src/home_screen.dart';
 import 'package:provider/provider.dart';
+
 import 'package:myapp/src/theme_notifier.dart';
 import 'package:myapp/src/login_screen.dart';
-import 'package:myapp/src/home_screen.dart';
 import 'package:myapp/src/notification_screen.dart';
 import 'package:myapp/src/calendar_screen.dart';
-
+import 'package:myapp/src/profile_screen.dart';
+import 'package:myapp/src/home_screen.dart'; // Tela de checklist
 import 'components/bottom_nav_bar.dart';
-import 'components/usuario_model.dart';
+import 'components/usuario_model.dart'; // Modelo do usuário
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,10 +25,10 @@ void main() async {
       backgroundColor: Color(0xFFFADCD9),
     ),
     iconTheme: const IconThemeData(color: Color(0xFFE5738A)),
-    colorScheme: ColorScheme.light(
-      primary: const Color(0xFFE5738A),
-      secondary: const Color(0xFFF8BBD0),
-      surface: const Color(0xFFFADCD9),
+    colorScheme: const ColorScheme.light(
+      primary: Color(0xFFE5738A),
+      secondary: Color(0xFFF8BBD0),
+      surface: Color(0xFFFADCD9),
     ),
     dividerColor: const Color(0xFFE8B9B2),
     bottomAppBarTheme: const BottomAppBarTheme(color: Color(0xFFE8B9B2)),
@@ -50,13 +52,14 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: theme.themeData,
-          home: const LoginScreen(),
+          home: const LoginScreen(), // Inicialmente mostra o login
         );
       },
     );
   }
 }
 
+// MainPage agora recebe o usuário logado
 class MainPage extends StatefulWidget {
   final UsuarioModel usuarioLogado;
 
@@ -79,13 +82,15 @@ class _MainPageState extends State<MainPage> {
       _pages = [
         CheckListScreen(conexaoId: widget.usuarioLogado.conexao!),
         const NotificationScreen(),
-        const CalendarScreen(),
+        CalendarScreen(conexaoId: widget.usuarioLogado.conexao!),
+        ProfileScreen(conexaoId: widget.usuarioLogado.conexao!),
       ];
     } else {
       _pages = [
         const Center(child: Text('Nenhuma conexão ativa')),
         const NotificationScreen(),
-        const CalendarScreen(),
+        const Center(child: Text('Nenhuma conexão ativa')),
+        const Center(child: Text('Perfil indisponível')),
       ];
     }
   }
@@ -101,7 +106,7 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.only(top: 40),
+        padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
         child: PageView(
           controller: _pageController,
           children: _pages,

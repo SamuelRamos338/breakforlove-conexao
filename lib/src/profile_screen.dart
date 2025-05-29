@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'login_screen.dart';
 import 'user_data_screen.dart';
 import 'couple_screen.dart';
 import 'about_app_screen.dart';
 import 'theme_screen.dart';
 
-
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  final String? conexaoId;
+
+  const ProfileScreen({super.key, required this.conexaoId});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +29,7 @@ class ProfileScreen extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const UserDataScreen()),
+                MaterialPageRoute(builder: (context) => UserDataScreen(usuarioId: conexaoId ?? '')),
               );
             },
           ),
@@ -64,13 +66,24 @@ class ProfileScreen extends StatelessWidget {
               );
             },
           ),
-          // Card de logout
-
+          _ProfileScreenItem(
+            texto: 'Deslogar',
+            descricao: 'Saia da sua conta no aplicativo.',
+            icone: Icons.logout,
+            onPressed: () {
+              // Lógica para deslogar o usuário
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    (route) => false,
+              );
+            },
+          ),
           const SizedBox(height: 30),
           const Spacer(),
-          const Text(
-            'ID: 00001',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+          Text(
+            'ID: ${conexaoId ?? "Nenhuma conexão"}',
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
           ),
         ],
       ),
