@@ -1,37 +1,46 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class CoupleScreen extends StatefulWidget {
-  const CoupleScreen({super.key});
+  final String conexaoId;
+  final String apiBaseUrl;
+
+  const CoupleScreen({
+    super.key,
+    required this.conexaoId,
+    required this.apiBaseUrl,
+  });
 
   @override
   State<CoupleScreen> createState() => _CoupleScreenState();
 }
 
 class _CoupleScreenState extends State<CoupleScreen> {
-  final Map<String, String> _infos = {
-    'Música favorita': 'Perfect - Ed Sheeran',
-    'Filme favorito': 'A Culpa é das Estrelas',
-    'Data especial': 'Primeiro encontro: 01/01/2023',
-    'Próximo aniversário de namoro': '14/03/2024',
-  };
-
-  final Map<String, IconData> _icons = {
-    'Música favorita': Icons.music_note,
-    'Filme favorito': Icons.movie,
-    'Data especial': Icons.calendar_today,
-    'Próximo aniversário de namoro': Icons.cake,
-  };
-
-  bool _isEditing = false;
+  Map<String, dynamic>? _infos;
+  bool _isLoading = true;
+  String? _error;
   String? _editingKey;
   final Map<String, TextEditingController> _controllers = {};
+
+  final Map<String, IconData> _icons = {
+    'musicaFavorita': Icons.music_note,
+    'filmeFavorito': Icons.movie,
+    'dataEspecial': Icons.calendar_today,
+    'proximoAniversarioNamoro': Icons.cake,
+  };
+
+  final Map<String, String> _labels = {
+    'musicaFavorita': 'Música favorita',
+    'filmeFavorito': 'Filme favorito',
+    'dataEspecial': 'Data especial',
+    'proximoAniversarioNamoro': 'Próximo aniversário de namoro',
+  };
 
   @override
   void initState() {
     super.initState();
-    for (var key in _infos.keys) {
-      _controllers[key] = TextEditingController(text: _infos[key]);
-    }
+    _fetchCoupleInfo();
   }
 
   @override
@@ -42,89 +51,112 @@ class _CoupleScreenState extends State<CoupleScreen> {
     super.dispose();
   }
 
-  void _toggleEditMode() {
+  Future<void> _fetchCoupleInfo() async {
     setState(() {
-      _isEditing = !_isEditing;
-      _editingKey = null;
+      _isLoading = true;
+      _error = null;
     });
+
+    final uri = Uri.parse('${widget.apiBaseUrl}/informacoesCasal/listar/${widget.conexaoId}');
+    try {
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _infos = data;
+          for (var key in _labels.keys) {
+            _controllers[key] = TextEditingController(text: data[key]?.toString() ?? '');
+          }
+          _isLoading = false;
+        });
+      } else if (response.statusCode == 404) {
+        setState(() {
+          _infos = {};
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'Erro ao carregar informações (${response.statusCode}).';
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      setState(() {
+        _error = 'Erro de rede ao carregar informações.';
+        _isLoading = false;
+      });
+    }
   }
 
-  void _startEdit(String key) {
-    setState(() {
-      _editingKey = key;
-      _controllers[key]?.text = '';
-    });
+  Future<void> _updateCoupleInfo(String key, String value) async {
+    final uri = Uri.parse('${widget.apiBaseUrl}/informacoesCasal/atualizar/${widget.conexaoId}');
+    try {
+      final response = await http.put(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({...?_infos, key: value}),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _infos = json.decode(response.body);
+          _controllers[key]?.text = value;
+          _editingKey = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Informação atualizada com sucesso!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao atualizar informações (${response.statusCode}).')),
+        );
+      }
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro de rede ao atualizar informações.')),
+      );
+    }
   }
 
-  void _saveEdit(String key) {
-    setState(() {
-      _infos[key] = _controllers[key]?.text ?? '';
-      _editingKey = null;
-    });
-  }
-
-  void _cancelEdit() {
-    setState(() {
-      _editingKey = null;
-    });
+  String _formatDate(String date) {
+    try {
+      final parsedDate = DateTime.parse(date);
+      return '${parsedDate.day}/${parsedDate.month}/${parsedDate.year}';
+    } catch (_) {
+      return date;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final iconColor = Theme.of(context).iconTheme.color;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sobre o Casal'),
-        actions: [
-          IconButton(
-            icon: Icon(_isEditing ? Icons.close : Icons.edit),
-            tooltip: _isEditing ? 'Cancelar edição' : 'Editar',
-            onPressed: _toggleEditMode,
-          ),
-        ],
+        title: const Text('Informações do Casal'),
       ),
-      body: SingleChildScrollView(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+          ? Center(child: Text(_error!))
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircleAvatar(
-                  radius: 48,
-                  backgroundImage: AssetImage('assets/profile1.jpg'),
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  children: [
-                    const SizedBox(height: 58),
-                    Icon(Icons.favorite, color: iconColor, size: 32),
-                  ],
-                ),
-                const SizedBox(width: 16),
-                const CircleAvatar(
-                  radius: 48,
-                  backgroundImage: AssetImage('assets/profile2.jpg'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Bolsonaro, Lula & Samuel',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Juntos desde: 14/02/2024',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            const SizedBox(height: 34),
-            ..._infos.keys.map((key) => Padding(
+          children: _labels.keys.map((key) {
+            final label = _labels[key]!;
+            final icon = _icons[key] ?? Icons.info;
+            final value = _infos?[key];
+
+            final displayValue = key == 'proximoAniversarioNamoro' && value != null
+                ? _formatDate(value)
+                : value ?? 'Não informado';
+
+            return Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: Card(
                 child: ListTile(
-                  leading: Icon(_icons[key], color: iconColor),
-                  title: Text(key),
+                  leading: Icon(icon, color: iconColor),
+                  title: Text(label),
                   subtitle: _editingKey == key
                       ? Row(
                     children: [
@@ -142,34 +174,34 @@ class _CoupleScreenState extends State<CoupleScreen> {
                       IconButton(
                         icon: const Icon(Icons.check, color: Colors.green),
                         tooltip: 'Salvar',
-                        onPressed: () => _saveEdit(key),
+                        onPressed: () => _updateCoupleInfo(
+                          key,
+                          _controllers[key]?.text ?? '',
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.close, color: Colors.red),
                         tooltip: 'Cancelar',
-                        onPressed: _cancelEdit,
+                        onPressed: () => setState(() => _editingKey = null),
                       ),
                     ],
                   )
                       : GestureDetector(
-                    onTap: _isEditing
-                        ? () => _startEdit(key)
-                        : null,
+                    onTap: () => setState(() => _editingKey = key),
                     child: Row(
                       children: [
-                        Expanded(child: Text(_infos[key]!)),
-                        if (_isEditing)
-                          const Padding(
-                            padding: EdgeInsets.only(left: 8),
-                            child: Icon(Icons.edit, size: 18, color: Colors.grey),
-                          ),
+                        Expanded(child: Text(displayValue)),
+                        const Padding(
+                          padding: EdgeInsets.only(left: 8),
+                          child: Icon(Icons.edit, size: 18, color: Colors.grey),
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
-            )),
-          ],
+            );
+          }).toList(),
         ),
       ),
     );

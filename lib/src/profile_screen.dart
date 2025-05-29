@@ -40,7 +40,12 @@ class ProfileScreen extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const CoupleScreen()),
+                MaterialPageRoute(
+                  builder: (context) => CoupleScreen(
+                    conexaoId: conexaoId ?? '', // Substitua por um valor válido
+                    apiBaseUrl: 'http://192.168.0.104:3000/api', // Substitua pela URL correta
+                  ),
+                ),
               );
             },
           ),

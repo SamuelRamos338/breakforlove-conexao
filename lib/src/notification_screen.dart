@@ -1,5 +1,5 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -11,29 +11,44 @@ class NotificationScreen extends StatefulWidget {
 class _NotificationScreenState extends State<NotificationScreen> with SingleTickerProviderStateMixin {
   int _hours = 0;
   int _minutes = 0;
-  int _seconds = 30;
-  late AnimationController _controller;
-  late Animation<double> _scaleAnim;
+  int _seconds = 0;
+  int _remainingMilliseconds = 0;
   bool _isTimerRunning = false;
   Timer? _timer;
-  int _remainingMilliseconds = 30000;
+  late AnimationController _controller;
+  late Animation<double> _scaleAnim;
+
+  final List<Map<String, dynamic>> _timePresets = [
+    {'label': '5 minutos', 'time': 5, 'description': '5 minutos para relaxar e respirar.'},
+    {'label': '10 minutos', 'time': 10, 'description': '10 minutos para recarregar sua mente.'},
+    {'label': '15 minutos', 'time': 15, 'description': '15 minutos para melhorar sua concentração.'},
+  ];
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: _remainingMilliseconds),
-    )..addListener(() {
-      setState(() {});
-    });
+      duration: const Duration(seconds: 0),
+    )..addListener(() => setState(() {}));
+
     _scaleAnim = Tween<double>(begin: 1.0, end: 1.08).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
     );
   }
 
+  void _startTimerFromPreset(int minutes) {
+    setState(() {
+      _hours = 0;
+      _minutes = minutes;
+      _seconds = 0;
+    });
+    _startTimer();
+  }
+
   void _startTimer() {
     if (_isTimerRunning || (_hours == 0 && _minutes == 0 && _seconds == 0)) return;
+
     setState(() {
       _remainingMilliseconds = Duration(hours: _hours, minutes: _minutes, seconds: _seconds).inMilliseconds;
       _isTimerRunning = true;
@@ -51,6 +66,7 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
         });
       } else {
         _stopTimer();
+        _showCompletionNotification();
       }
     });
   }
@@ -59,6 +75,34 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
     _timer?.cancel();
     _controller.stop();
     setState(() => _isTimerRunning = false);
+  }
+
+  void _resetTimer() {
+    _stopTimer();
+    setState(() {
+      _remainingMilliseconds = Duration(hours: _hours, minutes: _minutes, seconds: _seconds).inMilliseconds;
+      _controller.value = 1.0;
+    });
+  }
+
+  void _showCompletionNotification() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Parabéns! Você completou seu tempo longe do celular!")),
+    );
+  }
+
+  String _formatTime(int milliseconds) {
+    final hours = milliseconds ~/ 3600000;
+    final minutes = (milliseconds % 3600000) ~/ 60000;
+    final seconds = (milliseconds % 60000) ~/ 1000;
+    return "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _stopTimer();
+    super.dispose();
   }
 
   void _editTime() {
@@ -103,99 +147,6 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
     );
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    _stopTimer();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final bgColor = theme.colorScheme.surface.withOpacity(0.95);
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(height: 40),
-          GestureDetector(
-            onTap: _editTime,
-            child: AnimatedScale(
-              scale: _isTimerRunning ? _scaleAnim.value : 1.0,
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeInOutCubic,
-              child: SizedBox(
-                width: 260,
-                height: 260,
-                child: AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, child) {
-                    return CustomPaint(
-                      painter: TimerPainter(
-                        progress: _controller.value,
-                        backgroundColor: theme.colorScheme.surface.withOpacity(0.5),
-                        progressColor: theme.colorScheme.primary,
-                        glowColor: theme.colorScheme.primary,
-                      ),
-                      child: Center(
-                        child: Text(
-                          "${_hours.toString().padLeft(2, '0')}:${_minutes.toString().padLeft(2, '0')}:${_seconds.toString().padLeft(2, '0')}",
-                          style: TextStyle(
-                            fontSize: 38,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
-                            shadows: [
-                              Shadow(
-                                color: theme.colorScheme.primary.withOpacity(0.18),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 30),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton.icon(
-                onPressed: _isTimerRunning ? _stopTimer : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.error.withOpacity(0.9),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  elevation: 0,
-                ),
-                icon: const Icon(Icons.stop, color: Colors.white),
-                label: const Text('Parar', style: TextStyle(color: Colors.white)),
-              ),
-              ElevatedButton.icon(
-                onPressed: _startTimer,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.primary.withOpacity(0.9),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  elevation: 0,
-                ),
-                icon: const Icon(Icons.play_arrow, color: Colors.white),
-                label: const Text('Iniciar', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildTimePicker(String label, int value, ValueChanged<int> onChanged) {
     return Column(
       children: [
@@ -207,7 +158,7 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
             controller: FixedExtentScrollController(initialItem: value),
             itemExtent: 40,
             physics: const FixedExtentScrollPhysics(),
-            onSelectedItemChanged: (val) => onChanged(val),
+            onSelectedItemChanged: onChanged,
             childDelegate: ListWheelChildLoopingListDelegate(
               children: List.generate(60, (index) => Center(child: Text(index.toString().padLeft(2, '0')))),
             ),
@@ -216,18 +167,121 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
       ],
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: _editTime,
+              child: AnimatedScale(
+                scale: _isTimerRunning ? _scaleAnim.value : 1.0,
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeInOutCubic,
+                child: SizedBox(
+                  width: 220,
+                  height: 220,
+                  child: AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, child) {
+                      return CustomPaint(
+                        painter: TimerPainter(
+                          progress: _controller.value,
+                          backgroundColor: theme.colorScheme.surface.withOpacity(0.5),
+                          progressGradient: LinearGradient(
+                            colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          glowColor: theme.colorScheme.primary,
+                        ),
+                        child: Center(
+                          child: Text(
+                            _formatTime(_remainingMilliseconds),
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _isTimerRunning ? _stopTimer : null,
+                  icon: const Icon(Icons.stop),
+                  label: const Text("Parar"),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _resetTimer,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text("Reiniciar"),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _startTimer,
+                  icon: const Icon(Icons.play_arrow),
+                  label: const Text("Iniciar"),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'Tempos predefinidos:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _timePresets.length,
+                itemBuilder: (context, index) {
+                  final preset = _timePresets[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: ListTile(
+                      title: Text(preset['label']),
+                      subtitle: Text(preset['description']),
+                      trailing: ElevatedButton(
+                        onPressed: () => _startTimerFromPreset(preset['time']),
+                        child: const Text("Iniciar"),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class TimerPainter extends CustomPainter {
   final double progress;
   final Color backgroundColor;
-  final Color progressColor;
+  final LinearGradient progressGradient;
   final Color glowColor;
 
   TimerPainter({
     required this.progress,
     required this.backgroundColor,
-    required this.progressColor,
+    required this.progressGradient,
     required this.glowColor,
   });
 
@@ -239,7 +293,7 @@ class TimerPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final Paint progressPaint = Paint()
-      ..color = progressColor
+      ..shader = progressGradient.createShader(Rect.fromCircle(center: size.center(Offset.zero), radius: size.width / 2))
       ..strokeWidth = 14
       ..style = PaintingStyle.stroke
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 6);
@@ -250,26 +304,11 @@ class TimerPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 18);
 
-    final Offset center = Offset(size.width / 2, size.height / 2);
+    final Offset center = size.center(Offset.zero);
     final double radius = size.width / 2;
 
-    // Glow
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -1.5,
-      2 * 3.14 * progress,
-      false,
-      glowPaint,
-    );
-    // Progress
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -1.5,
-      2 * 3.14 * progress,
-      false,
-      progressPaint,
-    );
-    // Background
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -1.5, 2 * 3.14 * progress, false, glowPaint);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -1.5, 2 * 3.14 * progress, false, progressPaint);
     canvas.drawCircle(center, radius, backgroundPaint);
   }
 

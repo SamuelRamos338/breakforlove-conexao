@@ -27,6 +27,8 @@ dependencies:
 
   http: 1.4.0
 
+  flutter_local_notifications: ^17.0.0
+
 
 
 dev_dependencies:
