@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../components/usuario_model.dart';
+import 'login_screen.dart';
 import '../main.dart';
 
 class ConexaoScreen extends StatefulWidget {
@@ -229,80 +230,160 @@ class _ConexaoScreenState extends State<ConexaoScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Conexões'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _usuarioBuscadoController,
-              decoration: InputDecoration(
-                labelText: 'Buscar usuário',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: _isCarregandoBusca ? null : _buscarUsuarioPorNome,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (_usuarioEncontrado != null)
-              ListTile(
-                title: Text(_usuarioEncontrado!.nome),
-                subtitle: Text('Usuário: ${_usuarioEncontrado!.usuario}'),
-                trailing: ElevatedButton(
-                  onPressed: () => _enviarSolicitacao(_usuarioEncontrado!),
-                  child: const Text('Conectar'),
-                ),
-              ),
-            const SizedBox(height: 16),
-            const Text('Conexões pendentes:'),
-            const SizedBox(height: 8),
-            if (_isCarregandoPendentes)
-              const Center(child: CircularProgressIndicator()),
-            if (!_isCarregandoPendentes && _pendentes.isEmpty)
-              const Text('Nenhuma solicitação pendente.'),
-            if (!_isCarregandoPendentes && _pendentes.isNotEmpty)
-              Expanded(
-                child: ListView.separated(
-                  itemCount: _pendentes.length,
-                  separatorBuilder: (_, __) => const Divider(),
-                  itemBuilder: (context, idx) {
-                    final item = _pendentes[idx];
-                    return ListTile(
-                      title: Text(item['usuario1']['nome']),
-                      subtitle: Text('Usuário: ${item['usuario1']['usuario']}'),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextButton(
-                            onPressed: () => _aceitarConexao(item['_id']),
-                            child: const Text('Aceitar'),
-                          ),
-                          const SizedBox(width: 8),
-                          TextButton(
-                            onPressed: () => _rejeitarConexao(item['_id']),
-                            child: const Text(
-                              'Rejeitar',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
+ @override
+Widget build(BuildContext context) {
+  final theme = Theme.of(context);
+  final primary = theme.colorScheme.primary;
+  final secondary = theme.colorScheme.secondary;
+
+  return Scaffold(
+    body: AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            primary,
+            secondary,
+            primary,
           ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
       ),
-    );
-  }
+      child: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 30),
+                Image.asset(
+                  'assets/LogoApp.png',
+                  width: 480,
+                  height: 200,
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Faça a conexão com outro usuário',
+                  style: TextStyle(
+                    fontSize: 23,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                Card(
+                  color: Colors.white,
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(17.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextField(
+                          controller: _usuarioBuscadoController,
+                          decoration: InputDecoration(
+                            labelText: 'Buscar usuário',
+                            labelStyle: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.search),
+                              onPressed: _isCarregandoBusca ? null : _buscarUsuarioPorNome,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        if (_usuarioEncontrado != null)
+                          ListTile(
+                            title: Text(_usuarioEncontrado!.nome),
+                            subtitle: Text('Usuário: ${_usuarioEncontrado!.usuario}'),
+                            trailing: ElevatedButton(
+                              onPressed: () => _enviarSolicitacao(_usuarioEncontrado!),
+                              child: const Text('Conectar'),
+                            ),
+                          ),
+                        const SizedBox(height: 18),
+                        const Text(
+                          'Conexões pendentes:',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 48),
+                        if (_isCarregandoPendentes)
+                          const Center(child: CircularProgressIndicator()),
+                        if (!_isCarregandoPendentes && _pendentes.isEmpty)
+                          const Text(
+                            'Nenhuma solicitação pendente.',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        if (!_isCarregandoPendentes && _pendentes.isNotEmpty)
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _pendentes.length,
+                            separatorBuilder: (_, __) => const Divider(),
+                            itemBuilder: (context, idx) {
+                              final item = _pendentes[idx];
+                              return ListTile(
+                                title: Text(item['usuario1']['nome']),
+                                subtitle: Text('Usuário: ${item['usuario1']['usuario']}'),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    TextButton(
+                                      onPressed: () => _aceitarConexao(item['_id']),
+                                      child: const Text('Aceitar'),
+                                    ),
+                                    const SizedBox(width: 18),
+                                    TextButton(
+                                      onPressed: () => _rejeitarConexao(item['_id']),
+                                      child: const Text(
+                                        'Rejeitar',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    );
+                  },
+                  child: const Text(
+                    'Não posso me conectar agora',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
 
   @override
   void dispose() {

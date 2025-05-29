@@ -48,6 +48,7 @@ flutter:
   # Adiciona todos os arquivos da pasta assets/
   assets:
     - assets/
+    - assets/LogoApp.png
   # Para adicionar fontes customizadas, use a seção abaixo (exemplo comentado)
   # fonts:
   #   - family: Schyler

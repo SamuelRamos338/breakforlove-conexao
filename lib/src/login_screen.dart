@@ -135,8 +135,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       ),
                     ),
                     child: Image.asset(
-                      'assets/logoApp.png',
-                      width: 280,
+                      'assets/LogoApp.png',
+                      width: 480,
                       height: 200,
                     ),
                   ),

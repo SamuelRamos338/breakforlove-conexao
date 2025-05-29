@@ -8,7 +8,6 @@ import 'package:myapp/src/login_screen.dart';
 import 'package:myapp/src/notification_screen.dart';
 import 'package:myapp/src/calendar_screen.dart';
 import 'package:myapp/src/profile_screen.dart';
-import 'package:myapp/src/home_screen.dart'; // Tela de checklist
 import 'components/bottom_nav_bar.dart';
 import 'components/usuario_model.dart'; // Modelo do usuário
 
