@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/src/theme_notifier.dart';
+import 'package:myapp/src/login_screen.dart';
 import 'package:myapp/src/home_screen.dart';
 import 'package:myapp/src/notification_screen.dart';
 import 'package:myapp/src/calendar_screen.dart';
-import 'package:myapp/src/profile_screen.dart';
-import 'package:myapp/src/login_screen.dart'; // Certifique-se de que este caminho está correto
+
 import 'components/bottom_nav_bar.dart';
+import 'components/usuario_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,7 +50,7 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: theme.themeData,
-          home: const LoginScreen(), // Certifique-se de que LoginScreen está definido
+          home: const LoginScreen(),
         );
       },
     );
@@ -57,9 +58,9 @@ class MyApp extends StatelessWidget {
 }
 
 class MainPage extends StatefulWidget {
-  final String conexaoId;
+  final UsuarioModel usuarioLogado;
 
-  const MainPage({super.key, required this.conexaoId});
+  const MainPage({super.key, required this.usuarioLogado});
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -74,15 +75,25 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    _pages = [
-      CheckListScreen(conexaoId: widget.conexaoId), // Substituído por CheckListScreen
-      const NotificationScreen(),
-      const CalendarScreen(),
-      const ProfileScreen(),
-    ];
+    if (widget.usuarioLogado.conexao != null) {
+      _pages = [
+        CheckListScreen(conexaoId: widget.usuarioLogado.conexao!),
+        const NotificationScreen(),
+        const CalendarScreen(),
+      ];
+    } else {
+      _pages = [
+        const Center(child: Text('Nenhuma conexão ativa')),
+        const NotificationScreen(),
+        const CalendarScreen(),
+      ];
+    }
   }
 
   void _onTabChange(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
     _pageController.jumpToPage(index);
   }
 
@@ -94,9 +105,7 @@ class _MainPageState extends State<MainPage> {
         child: PageView(
           controller: _pageController,
           children: _pages,
-          onPageChanged: (index) {
-            setState(() => _selectedIndex = index);
-          },
+          onPageChanged: (index) => setState(() => _selectedIndex = index),
         ),
       ),
       bottomNavigationBar: BottomNavBar(

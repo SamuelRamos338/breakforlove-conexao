@@ -42,11 +42,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   }
 
   Future<void> _register() async {
-    if (_userController.text.isEmpty || _nameController.text.isEmpty || _passwordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
-      _showError('Todos os campos são obrigatórios.');
-      return;
-    }
-
     if (_passwordController.text != _confirmPasswordController.text) {
       _showError('As senhas não coincidem.');
       return;
@@ -65,11 +60,10 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       );
 
       if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cadastro realizado com sucesso!')),
+          const SnackBar(content: Text('Usuário cadastrado com sucesso!')),
         );
-        Navigator.pop(context); // Retorna para a tela de login
+        Navigator.pop(context);
       } else {
         final data = jsonDecode(response.body);
         _showError(data['msg'] ?? 'Erro ao cadastrar usuário.');
@@ -172,7 +166,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   }
 }
 
-class _RegisterScreenForm extends StatelessWidget {
+class _RegisterScreenForm extends StatefulWidget {
   final TextEditingController userController;
   final TextEditingController nameController;
   final TextEditingController passwordController;
@@ -192,10 +186,16 @@ class _RegisterScreenForm extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    final iconColor = Theme.of(context).iconTheme.color;
+  State<_RegisterScreenForm> createState() => _RegisterScreenFormState();
+}
 
+class _RegisterScreenFormState extends State<_RegisterScreenForm> {
+  bool _showPassword = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final iconColor = Theme.of(context).iconTheme.color;
+    final primaryColor = Theme.of(context).colorScheme.primary;
     return Card(
       color: Colors.white,
       elevation: 8,
@@ -206,7 +206,7 @@ class _RegisterScreenForm extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: userController,
+              controller: widget.userController,
               decoration: InputDecoration(
                 labelText: 'Usuário',
                 prefixIcon: Icon(Icons.person, color: iconColor),
@@ -217,7 +217,7 @@ class _RegisterScreenForm extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: nameController,
+              controller: widget.nameController,
               decoration: InputDecoration(
                 labelText: 'Nome',
                 prefixIcon: Icon(Icons.person_outline, color: iconColor),
@@ -228,20 +228,29 @@ class _RegisterScreenForm extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: passwordController,
-              obscureText: true,
+              controller: widget.passwordController,
+              obscureText: !_showPassword,
               decoration: InputDecoration(
                 labelText: 'Senha',
                 prefixIcon: Icon(Icons.lock, color: iconColor),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _showPassword ? Icons.visibility : Icons.visibility_off,
+                    color: iconColor,
+                  ),
+                  onPressed: () {
+                    setState(() => _showPassword = !_showPassword);
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: confirmPasswordController,
-              obscureText: true,
+              controller: widget.confirmPasswordController,
+              obscureText: !_showPassword,
               decoration: InputDecoration(
                 labelText: 'Confirmar Senha',
                 prefixIcon: Icon(Icons.lock_outline, color: iconColor),
@@ -261,8 +270,8 @@ class _RegisterScreenForm extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    onPressed: isLoading ? null : onRegisterTap,
-                    child: isLoading
+                    onPressed: widget.isLoading ? null : widget.onRegisterTap,
+                    child: widget.isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
                       'Cadastrar',
@@ -273,7 +282,7 @@ class _RegisterScreenForm extends StatelessWidget {
               ],
             ),
             TextButton(
-              onPressed: onLoginTap,
+              onPressed: widget.onLoginTap,
               child: const Text(
                 'Já tem uma conta? Voltar ao login',
                 style: TextStyle(

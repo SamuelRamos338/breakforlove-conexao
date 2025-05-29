@@ -8,6 +8,7 @@ router.post('/cadastrar', UsuarioController.cadastrar);
 // Login de usuário
 router.post('/login', UsuarioController.login);
 
+// Buscar ID por nome de usuário
 router.get('/buscar-id/:usuario', UsuarioController.buscarIdPorUsuario);
 
 // Atualizar usuário

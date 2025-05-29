@@ -31,12 +31,12 @@ const UsuarioController = {
       await designPadrao.save();
       //#endregion
 
-      res.status(201).json({ 
-        msg: 'Usuário cadastrado com sucesso', 
+      res.status(201).json({
+        msg: 'Usuário cadastrado com sucesso',
         usuario: {
-          id: novoUsuario._id, 
-          nome: novoUsuario.nome, 
-          usuario: novoUsuario.usuario 
+          id: novoUsuario._id,
+          nome: novoUsuario.nome,
+          usuario: novoUsuario.usuario
         }
       });
     } catch (error) {
@@ -108,13 +108,13 @@ const UsuarioController = {
       }
 
       await user.save();
-      res.status(200).json({ 
-        msg: 'Usuário atualizado com sucesso', 
-        usuario: { 
-          id: user._id, 
-          usuario: user.usuario, 
-          nome: user.nome 
-        } 
+      res.status(200).json({
+        msg: 'Usuário atualizado com sucesso',
+        usuario: {
+          id: user._id,
+          usuario: user.usuario,
+          nome: user.nome
+        }
       });
     } catch (error) {
       console.error('Erro ao atualizar usuário:', error);
@@ -122,18 +122,18 @@ const UsuarioController = {
     }
   },
   //#endregion
-  
+
   //#region Buscar ID do usuario pelo usuario
   async buscarIdPorUsuario(req, res) {
     const { usuario } = req.params;
-    
+
     try {
       const user = await Usuario.findOne({ usuario });
-      
+
       if (!user) {
         return res.status(404).json({ msg: 'Usuário não encontrado.' });
       }
-      
+
       res.status(200).json({ id: user._id });
     } catch (err) {
       console.error('Erro ao buscar usuário:', err);
