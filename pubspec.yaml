@@ -8,7 +8,7 @@ version: 1.0.0+1
 
 environment:
   # Versão mínima do SDK do Dart necessária
-  sdk: ^3.7.0-209.1.beta
+  sdk: ">=3.7.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -16,8 +16,6 @@ dependencies:
 
   # Biblioteca para calendário customizado
   table_calendar: ^3.0.8
-  # Ícones estilo iOS
-  cupertino_icons: ^1.0.8
   # Barra de navegação customizada
   google_nav_bar: ^5.0.7
   # Internacionalização e formatação de datas
@@ -25,23 +23,31 @@ dependencies:
   # Gerenciamento de estado reativo (necessário para temas dinâmicos)
   provider: ^6.0.0
 
-  http: 1.4.0
+  http: ^1.4.0
 
-  flutter_local_notifications: ^17.0.0
+  flutter_native_splash: ^2.0.5
 
-
+  cupertino_icons: ^1.0.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.13.1
-flutter_lints: ^5.0.0
-flutter_launcher_icons:
-    android: true
-    ios: true
-    image_path: "assets/iconApp.png"
-  # Lints recomendados para boas práticas
 
+  flutter_lints: ^5.0.0
+
+flutter_native_splash:
+  color: "#E8B9B2"
+  image: "assets/app/splash.png"
+  android: true
+  ios: true
+  web: true
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/app/iconApp.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/app/iconApp.png"
 
 flutter:
   # Garante que os ícones do Material estejam disponíveis
@@ -51,10 +57,3 @@ flutter:
   assets:
     - assets/
     - assets/LogoApp.png
-  # Para adicionar fontes customizadas, use a seção abaixo (exemplo comentado)
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
