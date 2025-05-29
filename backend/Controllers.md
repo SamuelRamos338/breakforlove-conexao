@@ -300,3 +300,39 @@
 - `400` - Foto de perfil é obrigatória.
 - `404` - Design não encontrado.
 - `500` - Erro interno no servidor.
+
+---
+<br>
+
+# CONTROLLER INFORMACOES CASAL
+
+---
+
+## Atualizar informações do casal  
+**Endpoint:** `PUT /api/informacoes-casal/:id`  
+**Parâmetro:** `id` - ID da conexão
+**Body:**  
+```json
+{
+  "musicaFavorita": "string (opcional)",
+  "filmeFavorito": "string (opcional)",
+  "dataEspecial": "string (opcional)",
+  "proximoAniversarioNamoro": "2025-05-29T00:00:00.000Z (opcional)"
+}
+```  
+**Retornos:**  
+- `200` - Informações do casal atualizadas com sucesso.  
+- `404` - Informações do casal não encontradas para o id fornecido.  
+- `500` - Erro interno no servidor.
+
+---
+
+## Listar informações do casal  
+**Endpoint:** `GET /api/informacoes-casal/:id`  
+**Parâmetro:** `id` - ID da conexão
+**Retornos:**  
+- `200` - Retorna as informações do casal para a conexão.  
+- `404` - Informações do casal não encontradas para o id fornecido.  
+- `500` - Erro interno no servidor.
+
+---

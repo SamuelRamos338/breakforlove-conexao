@@ -22,6 +22,9 @@ app.use('/api/lembrete', lembreteRoutes);
 const checkListRoutes = require('./routes/checkListRoute');
 app.use('/api/checkList', checkListRoutes);
 
+const informacoesCasalRoutes = require('./routes/informacoesCasalRoutes');
+app.use('/api/informacoesCasal', informacoesCasalRoutes);
+
 const designRoutes = require('./routes/designRoute');
 app.use('/api/design', designRoutes);
 

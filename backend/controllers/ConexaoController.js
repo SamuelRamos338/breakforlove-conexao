@@ -2,6 +2,7 @@ const Conexao = require('../models/ConexaoModel.js');
 const Usuario = require('../models/UsuarioModel');
 const CheckList = require('../models/CheckListModel');
 const Lembrete = require('../models/LembreteModel');
+const InformacoesCasal = require('../models/InformacoesCasalModel');
 
 const ConexaoController = {
   //#region Criar uma nova solicitação de conexão
@@ -97,6 +98,22 @@ const ConexaoController = {
 
       conexao.status = 'aceita';
       await conexao.save();
+
+      try {
+        const existente = await InformacoesCasal.findOne({ conexao: conexao._id });
+        if (!existente) {
+          await InformacoesCasal.create({
+            conexao: conexao._id,
+            musicaFavorita: '',
+            filmeFavorito: '',
+            dataEspecial: '',
+            proximoAniversarioNamoro: null
+          });
+        }
+      } catch (err) {
+        console.error('Erro ao criar InformacoesCasal:', err);
+        // Você pode optar por continuar normalmente mesmo com erro
+      }
 
       await Promise.all([
         Usuario.findByIdAndUpdate(conexao.usuario1, { conexao: conexao._id }),
